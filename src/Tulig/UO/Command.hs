@@ -124,7 +124,6 @@ pathfind x y z =
 -- TODO popup
 -- TODO property
 -- TODO renamepet
--- TODO scanitems
 
 scanItems :: Bool -> UO Int
 scanItems visibleOnly =
