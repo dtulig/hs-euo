@@ -1,6 +1,7 @@
 module Tulig.UO.Variable where
 
 import Tulig.UO.Base
+import Tulig.UO.Types
 
 getAR :: UO Int
 getAR = getVarInt "AR"
@@ -80,8 +81,13 @@ getContSizeY = getVarInt "ContSizeY"
 getContType :: UO Int
 getContType = getVarInt "ContType"
 
-getCursKind :: UO Int
-getCursKind = getVarInt "CursKind"
+getCursKind :: UO UOFacet
+getCursKind = do
+  res <- getCursKind'
+  return $ uoFacetFromInt res
+
+getCursKind' :: UO Int
+getCursKind' = getVarInt "CursKind"
 
 getDex :: UO Int
 getDex = getVarInt "Dex"

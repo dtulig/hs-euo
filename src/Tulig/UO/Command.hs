@@ -59,27 +59,32 @@ getItem i = do
 -- TODO GetJournal
 -- TODO GetShop
 
-data UOSkillLock = Up
-                 | Down
-                 | Locked
-                 deriving (Show)
+data UOLock = UOLockUp
+            | UOLockDown
+            | UOLockLocked
+            deriving (Show)
 
-uoSkillLockFromInt :: Int -> UOSkillLock
-uoSkillLockFromInt 1 = Down
-uoSkillLockFromInt 2 = Locked
-uoSkillLockFromInt _ = Up
+uoLockFromInt :: Int -> UOLock
+uoLockFromInt 1 = UOLockDown
+uoLockFromInt 2 = UOLockLocked
+uoLockFromInt _ = UOLockUp
+
+uoLockToInt :: UOLock -> Int
+uoLockToInt UOLockUp = 0
+uoLockToInt UOLockDown = 1
+uoLockToInt UOLockLocked = 2
 
 data UOSkill = UOSkill { uoSkillNorm :: Int
                        , uoSkillReal :: Int
                        , uoSkillCap :: Int
-                       , uoSkillLock :: UOSkillLock }
+                       , uolock :: UOLock }
                deriving (Show)
 
 getSkill :: String -> UO (Maybe UOSkill)
 getSkill skill = do
   res <- executeCommand ReturnResult "GetSkill" [(UOString skill)]
   return $ case (map uoArgToInteger res) of
-    [f1, f2, f3, f4] -> Just (UOSkill f1 f2 f3 (uoSkillLockFromInt f4))
+    [f1, f2, f3, f4] -> Just (UOSkill f1 f2 f3 (uoLockFromInt f4))
     _ -> Nothing
 
 hideItem :: Int -> UO ()
@@ -121,9 +126,23 @@ pathfind :: Int -> Int -> Int -> UO ()
 pathfind x y z =
   executeCommand IgnoreResult "Pathfind" [(UOInteger x), (UOInteger y), (UOInteger z)] >> return ()
 
--- TODO popup
--- TODO property
--- TODO renamepet
+popup :: Int -> UO ()
+popup nId =
+  executeCommand IgnoreResult "Popup" [(UOInteger nId)] >> return ()
+
+data UOProperty = UOProperty { uoPropertyName :: String
+                             , uoPropertyInfo :: String }
+
+getProperty :: Int -> UO (Maybe UOProperty)
+getProperty i = do
+  res <- executeCommand ReturnResult "Property" [(UOInteger i)]
+  return $ case (map uoArgToString res) of
+    [f1, f2] -> Just (UOProperty f1 f2)
+    _ -> Nothing
+
+renamePet :: Int -> String -> UO ()
+renamePet nId name =
+  executeCommand IgnoreResult "RenamePet" [(UOInteger nId), (UOString name)] >> return ()
 
 scanItems :: Bool -> UO Int
 scanItems visibleOnly =
@@ -133,14 +152,58 @@ scanItems visibleOnly =
 
 -- TODO scanjournal
 -- TODO setshop
--- TODO skilllock
--- TODO statbar
--- TODO statlock
+
+skillLock :: String -> UOLock -> UO ()
+skillLock skill lock =
+  executeCommand IgnoreResult "SkillLock" [(UOString skill), (UOInteger (uoLockToInt lock))] >> return ()
+
+statBar :: Int -> UO ()
+statBar i = executeCommand IgnoreResult "StatBar" [(UOInteger i)] >> return ()
+
+statLock :: UOStat -> UOLock -> UO ()
+statLock stat lock =
+  executeCommand IgnoreResult "StatLock" [ (UOString (uoStatToString stat))
+                                         , (UOInteger (uoLockToInt lock))] >> return ()
 
 sysMessage :: String -> Int -> UO ()
 sysMessage str color =
   executeCommand IgnoreResult "SysMessage" [(UOString str), (UOInteger color)] >> return ()
 
--- TODO TileCnt
--- TODO TileGet
--- TODO TileInit
+tileCnt :: Int -> Int -> UO Int
+tileCnt x y = do
+  res <- executeCommand ReturnResult "TileCnt" [(UOInteger x), (UOInteger y)]
+  return $ case (map uoArgToInteger res) of
+    [f1] -> f1
+    _ -> 0
+
+tileCnt' :: Int -> Int -> UOFacet -> UO Int
+tileCnt' x y facet = do
+  res <- executeCommand ReturnResult "TileCnt" [ (UOInteger x)
+                                               , (UOInteger y)
+                                               , (UOInteger (uoFacetToInt facet))]
+  return $ case (map uoArgToInteger res) of
+    [f1] -> f1
+    _ -> 0
+
+data UOTile = UOTile { uoTileType :: Int
+                     , uoTileZ :: Int
+                     , uoTileName :: String
+                     , uoTileFlags :: String }
+
+tileGet :: Int -> Int -> Int -> UO (Maybe UOTile)
+tileGet x y i = do
+  res <- executeCommand ReturnResult "TileGet" (map UOInteger [x, y, i])
+  return $ case res of
+    [f1, f2, f3, f4] -> Just (UOTile
+                              (uoArgToInteger f1)
+                              (uoArgToInteger f2)
+                              (uoArgToString f3)
+                              (uoArgToString f4))
+    _ -> Nothing
+
+tileInit :: Bool -> UO Bool
+tileInit noOverrides = do
+  res <- executeCommand ReturnResult "TileInit" [(UOBool noOverrides)]
+  return $ case res of
+    (x:_) -> (uoArgToBoolean x)
+    _ -> False

@@ -3,6 +3,39 @@ module Tulig.UO.Types where
 data UOFunctionResult = IgnoreResult
                       | ReturnResult
 
+data UOStat = UOStatDex
+            | UOStatInt
+            | UOStatStr
+            deriving (Show)
+
+uoStatToString UOStatDex = "dex"
+uoStatToString UOStatInt = "int"
+uoStatToString UOStatStr = "str"
+
+data UOFacet = UOFacetFelucca
+             | UOFacetTrammel
+             | UOFacetIlshenar
+             | UOFacetMalas
+             | UOFacetTokuno
+             | UOFacetSA
+             deriving (Show)
+
+uoFacetFromInt :: Int -> UOFacet
+uoFacetFromInt 1 = UOFacetTrammel
+uoFacetFromInt 2 = UOFacetIlshenar
+uoFacetFromInt 3 = UOFacetMalas
+uoFacetFromInt 4 = UOFacetTokuno
+uoFacetFromInt 5 = UOFacetSA
+uoFacetFromInt _ = UOFacetFelucca
+
+uoFacetToInt :: UOFacet -> Int
+uoFacetToInt UOFacetFelucca = 0
+uoFacetToInt UOFacetTrammel = 1
+uoFacetToInt UOFacetIlshenar = 2
+uoFacetToInt UOFacetMalas = 3
+uoFacetToInt UOFacetTokuno = 4
+uoFacetToInt UOFacetSA = 5
+
 data UOModKey = MK_CTRL
               | MK_ALT
               | MK_SHIFT
