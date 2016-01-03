@@ -58,7 +58,29 @@ getItem i = do
 
 -- TODO GetJournal
 -- TODO GetShop
--- TODO GetSkill
+
+data UOSkillLock = Up
+                 | Down
+                 | Locked
+                 deriving (Show)
+
+uoSkillLockFromInt :: Int -> UOSkillLock
+uoSkillLockFromInt 1 = Down
+uoSkillLockFromInt 2 = Locked
+uoSkillLockFromInt _ = Up
+
+data UOSkill = UOSkill { uoSkillNorm :: Int
+                       , uoSkillReal :: Int
+                       , uoSkillCap :: Int
+                       , uoSkillLock :: UOSkillLock }
+               deriving (Show)
+
+getSkill :: String -> UO (Maybe UOSkill)
+getSkill skill = do
+  res <- executeCommand ReturnResult "GetSkill" [(UOString skill)]
+  return $ case (map uoArgToInteger res) of
+    [f1, f2, f3, f4] -> Just (UOSkill f1 f2 f3 (uoSkillLockFromInt f4))
+    _ -> Nothing
 
 hideItem :: Int -> UO ()
 hideItem i = executeCommand IgnoreResult "HideItem" [(UOInteger i)] >> return ()
