@@ -56,7 +56,17 @@ getItem i = do
       return (UOItem f1 f2 f3 f4 f5 f6 f7 f8 f9 f10)
     x -> error $ "Invalid number of uo items returned: " ++ show x
 
--- TODO GetJournal
+data UOJournalEntry = UOJournalEntry { uoJournalEntryLine :: String
+                                     , uoJournalEntryColor :: Int }
+                    deriving (Show)
+
+getJournal :: Int -> UO (Maybe UOJournalEntry)
+getJournal i = do
+  res <- executeCommand ReturnResult "GetJournal" [(UOInteger i)]
+  return $ case res of
+    [f1, f2] -> Just (UOJournalEntry (uoArgToString f1) (uoArgToInteger f2))
+    _ -> Nothing
+
 -- TODO GetShop
 
 data UOLock = UOLockUp
@@ -150,7 +160,17 @@ scanItems visibleOnly =
   where scanItemsResult (x:_) = uoArgToInteger x
         scanItemsResult _ = 0
 
--- TODO scanjournal
+data UOJournalInfo = UOJournalInfo { uoJournalInfoNewRef :: Int
+                                   , uoJournalInfoCount :: Int }
+                   deriving (Show)
+
+scanJournal :: Int -> UO (Maybe UOJournalInfo)
+scanJournal oldRef = do
+  res <- executeCommand ReturnResult "ScanJournal" [(UOInteger oldRef)]
+  return $ case (map uoArgToInteger res) of
+    [f1, f2] -> Just (UOJournalInfo f1 f2)
+    _ -> Nothing
+
 -- TODO setshop
 
 skillLock :: String -> UOLock -> UO ()
