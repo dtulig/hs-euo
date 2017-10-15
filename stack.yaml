@@ -1,10 +1,10 @@
-resolver: lts-3.19
-packages:
-- '.'
-extra-deps: []
 flags: {}
-extra-package-dbs: []
-
-# Extra directories used by stack for building
-# extra-include-dirs: [/path/to/dir]
-# extra-lib-dirs: [/path/to/dir]
+packages:
+ - '.'
+extra-deps:
+ - ghc-paths-0.1.0.9
+ - syb-0.7
+resolver: ghc-8.0.2
+nix:
+  enable: true
+  shell-file: shell.nix
